@@ -1,0 +1,25 @@
+# Hunyuan AVSpeech Video Index Mapping
+# Format: index:filename
+0:video_with_audio_0_comparison.mp4
+1:video_with_audio_10_comparison.mp4
+2:video_with_audio_11_comparison.mp4
+3:video_with_audio_12_comparison.mp4
+4:video_with_audio_13_comparison.mp4
+5:video_with_audio_14_comparison.mp4
+6:video_with_audio_15_comparison.mp4
+7:video_with_audio_16_comparison.mp4
+8:video_with_audio_17_comparison.mp4
+9:video_with_audio_18_comparison.mp4
+10:video_with_audio_19_comparison.mp4
+11:video_with_audio_1_comparison.mp4
+12:video_with_audio_20_comparison.mp4
+13:video_with_audio_21_comparison.mp4
+14:video_with_audio_22_comparison.mp4
+15:video_with_audio_2_comparison.mp4
+16:video_with_audio_3_comparison.mp4
+17:video_with_audio_4_comparison.mp4
+18:video_with_audio_5_comparison.mp4
+19:video_with_audio_6_comparison.mp4
+20:video_with_audio_7_comparison.mp4
+21:video_with_audio_8_comparison.mp4
+22:video_with_audio_9_comparison.mp4

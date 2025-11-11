@@ -1,0 +1,34 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment variables
+.env
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files (if videos are too large)
+# Uncomment if you don't want to commit videos:
+# user_study_comparisons/**/*.mp4
+
+# Analysis outputs
+data/analysis_output/
+data/visualization_output/
+data/collected_results*.json
+
+# Temporary files
+*.tmp
+*.log
+data/config.ini

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Debug</title>
+</head>
+<body>
+    <h1>Video Loading Test</h1>
+    <video id="testVideo" controls width="800">
+        <source src="hallo3_NEW_avspeech_OG_vs_la_1/Confirmed--z09R4Mu4Wc_198.520000_210.000000_video_510_570_comparison.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <script>
+        const video = document.getElementById('testVideo');
+        video.addEventListener('loadedmetadata', () => {
+            console.log('Video loaded successfully');
+            document.body.innerHTML += '<p style="color: green;">✅ Video loaded successfully!</p>';
+        });
+
+        video.addEventListener('error', (e) => {
+            console.error('Video error:', e);
+            document.body.innerHTML += '<p style="color: red;">❌ Video failed to load</p>';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Omniavatar AVSpeech Video Index Mapping
+# Format: index:filename
+0:Confirmed--z09R4Mu4Wc_198.520000_210.000000_video_510_570_comparison.mp4
+1:Confirmed-0LzFmpEHV6g_63.333333_72.458333_video_436_467_comparison.mp4
+2:Confirmed-3AKkpf0clew_76.866667_89.300000_video_25_85_comparison.mp4
+3:Confirmed-6Pw0MscTQVQ_270.083333_282.166667_video_198_239_comparison.mp4
+4:Confirmed-99DKbROappA_120.019900_134.801333_video_152_178_comparison.mp4
+5:Confirmed-BOPWZ8y5dDo_226.626400_239.973067_video_288_323_comparison.mp4
+6:Confirmed-DL793AEcJAE_90.000000_101.800000_video_108_169_comparison.mp4
+7:Confirmed-GPjJiUsoy7g_105.833333_119.433333_video_16_106_comparison.mp4
+8:Confirmed-IG7F9c8b8sQ_11.878533_20.754067_video_2_60_comparison.mp4
+9:Confirmed-IhoRGJl-s8M_133.500000_141.908000_video_210_270_comparison.mp4
+10:Confirmed-QPtJM8Y4N2w_240.589000_253.160000_video_0_60_comparison.mp4
+11:Confirmed-WvHfOw8hRyI_254.240000_263.480000_video_170_210_comparison.mp4
+12:Confirmed-Y9FG06buT94_95.640000_104.560000_video_46_70_comparison.mp4
+13:Confirmed-dQFS4Qqom28_0.000000_13.150000_video_65_150_comparison.mp4
+14:Confirmed-gB0gGpaH-RY_277.443833_290.089800_video_243_287_comparison.mp4
+15:Confirmed-gcFtIYW2Xms_258.880000_270.000000_video_118_178_comparison.mp4
+16:Confirmed-iPA46Ji9a98_79.379300_89.989900_video_1_61_comparison.mp4
+17:Confirmed-iyTcwLcud2s_180.240000_190.560000_video_0_60_comparison.mp4
+18:Confirmed-lI5t0VPUfVc_19.853167_27.994633_video_2_53_comparison.mp4
+19:Confirmed-mf9MWgsu6a8_150.951200_161.054000_video_10_40_comparison.mp4
+20:Confirmed-o-fCcSubjoU_230.280000_239.989000_video_18_76_comparison.mp4
+21:Confirmed-sfhqtA4zFgY_223.256367_231.564667_video_70_120_comparison.mp4
+22:Confirmed-yZfrPuBytPQ_49.983000_59.993000_video_83_103_comparison.mp4

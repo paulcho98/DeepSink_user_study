@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Generation Model Comparison Study</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Video Generation Model Comparison Study</h1>
+            <div class="subtitle">Research on Video Generation Quality</div>
+        </header>
+
+        <main class="main-content">
+            <div class="instructions-card">
+                <h2>Instructions</h2>
+
+                <div class="instruction-section">
+                    <h3>🎯 Purpose</h3>
+                    <p>This study evaluates the quality of different video generation models. You will compare pairs of generated videos and choose which one has better quality.</p>
+                </div>
+
+                <div class="instruction-section">
+                    <h3>📋 What You'll Do</h3>
+                    <ul>
+                        <li><strong>10 Comparison Sets:</strong> You'll evaluate videos from 10 different model comparisons</li>
+                        <li><strong>2 Videos per Set:</strong> Each comparison set contains 2 randomly selected video pairs</li>
+                        <li><strong>5 Questions per Video:</strong> Answer 5 specific questions about interaction accuracy, entity accuracy, temporal consistency, prompt faithfulness, and overall quality</li>
+                        <li><strong>A/B Choice:</strong> Simply choose "Model A" or "Model B" for each question</li>
+                        <li><strong>Time Required:</strong> Approximately 10-15 minutes</li>
+                    </ul>
+                </div>
+
+                                <div class="instruction-section">
+                    <h3>❓ Evaluation Questions</h3>
+                    <p>For each video comparison, you will answer these 5 questions:</p>
+                    <ol>
+                        <li><strong>Interaction Accuracy:</strong> Which video better represents the intended interaction from the prompt?</li>
+                        <li><strong>Entity Accuracy:</strong> Which video more accurately includes the specified entities from the prompt?</li>
+                        <li><strong>Temporal Consistency:</strong> Which video is more temporally consistent without sudden appearances/disappearances?</li>
+                        <li><strong>Prompt Faithfulness:</strong> Which video shows the interaction more faithfully according to the prompt?</li>
+                        <li><strong>Overall Quality:</strong> Which video looks more realistic, natural, and of higher quality?</li>
+                    </ol>
+                </div>
+
+                <div class="instruction-section">
+                    <h3>🔒 Research Information</h3>
+                    <p>This survey is conducted for research purposes. Your responses will be used solely for academic research on video generation quality evaluation.</p>
+                </div>
+
+                <div class="instruction-section important-note">
+                    <h3>⚠️ Important Notes</h3>
+                    <ul>
+                        <li>Please watch each video completely before making your choice</li>
+                        <li>Trust your first impression - there are no "correct" answers</li>
+                        <li>Focus on overall video quality including motion, clarity, and coherence</li>
+                        <li>You can navigate back and forth between videos within each comparison set</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="start-section">
+                <button id="startStudyBtn" class="start-button">
+                    Start Video Comparison Study
+                    <span class="button-subtitle">~10-15 minutes</span>
+                </button>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Video Generation Model Research</p>
+        </footer>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script>
+        document.getElementById('startStudyBtn').addEventListener('click', function() {
+            // Initialize study session
+            const studyData = {
+                startTime: Date.now(),
+                participantId: generateUserId(),
+                demographics: {},
+                responses: {}
+            };
+            localStorage.setItem('userStudyData', JSON.stringify(studyData));
+
+            // Redirect to study page
+            window.location.href = 'study.html';
+        });
+    </script>
+</body>
+</html>
