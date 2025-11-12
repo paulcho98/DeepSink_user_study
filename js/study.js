@@ -10,6 +10,13 @@ class UserStudy {
         this.responses = {};
         this.studyData = null;
         this.isInitialized = false;
+        
+        // Track which video IDs have been used across comparison sets
+        // Separate tracking for 30s and 60s videos to prevent overlap
+        this.usedVideoIds = {
+            '30s': new Set(),  // Track used 30s video IDs (e.g., '30s_2', '30s_24')
+            '60s': new Set()   // Track used 60s video IDs (e.g., '60s_2', '60s_28')
+        };
 
         this.init();
     }
@@ -28,6 +35,10 @@ class UserStudy {
 
             // Initialize responses
             this.initializeResponses();
+            
+            // Load saved progress (including used video IDs) BEFORE loading comparison set
+            // This ensures we don't reuse videos that were already shown
+            this.loadResponses();
 
             // Setup UI
             this.setupUI();
@@ -82,6 +93,9 @@ class UserStudy {
 
         // Load videos for this comparison set
         await this.loadVideosForComparison(comparisonSet);
+        
+        // Save used video IDs after loading a new comparison set
+        this.saveResponses();
 
         // Update UI
         this.updateProgress();
@@ -99,15 +113,83 @@ class UserStudy {
         const videos30s = existingVideos.filter(v => v.filename.startsWith('30s_'));
         const videos60s = existingVideos.filter(v => v.filename.startsWith('60s_'));
         
-        // Randomly select 4 videos: 2 from 30s and 2 from 60s
-        const shuffled30s = this.shuffleArray([...videos30s]);
-        const shuffled60s = this.shuffleArray([...videos60s]);
+        // Extract video ID (basename) from filename for tracking
+        // e.g., '30s_2_comparison.mp4' -> '30s_2'
+        const getVideoId = (filename) => {
+            return filename.replace('_comparison.mp4', '').replace('.mp4', '');
+        };
         
-        // Select 2 from each duration
-        const selectedFiles = [
-            ...shuffled30s.slice(0, 2),
-            ...shuffled60s.slice(0, 2)
-        ];
+        // Filter out videos that have already been used in previous comparison sets
+        // Only filter within the same duration category (30s vs 30s, 60s vs 60s)
+        const available30s = videos30s.filter(v => {
+            const videoId = getVideoId(v.filename);
+            return !this.usedVideoIds['30s'].has(videoId);
+        });
+        
+        const available60s = videos60s.filter(v => {
+            const videoId = getVideoId(v.filename);
+            return !this.usedVideoIds['60s'].has(videoId);
+        });
+        
+        // Check if we have enough videos available
+        if (available30s.length < 2) {
+            console.warn(`Warning: Only ${available30s.length} unused 30s videos available, need 2`);
+        }
+        
+        // For 60s videos: if we don't have enough unused videos, resample from the remaining 6
+        // When only 1 unused video remains, resample the second video from the 6 that were used previously
+        let selected60s = [];
+        if (available60s.length >= 2) {
+            // Normal case: we have enough unused videos
+            const shuffled60s = this.shuffleArray([...available60s]);
+            selected60s = shuffled60s.slice(0, 2);
+        } else if (available60s.length === 1) {
+            // Special case: only 1 unused video remains
+            // Use that 1 unused video, then resample 1 more from the 6 that were used previously
+            const used60sIds = Array.from(this.usedVideoIds['60s']);
+            const all60sIds = videos60s.map(v => getVideoId(v.filename));
+            
+            // Get the 6 videos that were used in previous sets
+            const previouslyUsed6Ids = all60sIds.filter(id => used60sIds.includes(id));
+            const previouslyUsed6Videos = videos60s.filter(v => {
+                const videoId = getVideoId(v.filename);
+                return previouslyUsed6Ids.includes(videoId);
+            });
+            
+            // Use the 1 unused video
+            selected60s.push(available60s[0]);
+            
+            // Resample 1 more from the 6 previously used videos
+            const shuffledUsed6 = this.shuffleArray([...previouslyUsed6Videos]);
+            selected60s.push(shuffledUsed6[0]);
+            
+            console.log(`Only 1 unused 60s video. Using it + resampling 1 from ${previouslyUsed6Ids.length} previously used:`, previouslyUsed6Ids);
+        } else {
+            // Fallback: use whatever is available
+            const shuffled60s = this.shuffleArray([...available60s]);
+            selected60s = shuffled60s.slice(0, Math.min(2, available60s.length));
+            console.warn(`Warning: Only ${available60s.length} unused 60s videos available`);
+        }
+        
+        // Randomly select 2 from 30s videos
+        const shuffled30s = this.shuffleArray([...available30s]);
+        const selected30s = shuffled30s.slice(0, Math.min(2, shuffled30s.length));
+        
+        // Mark selected videos as used
+        selected30s.forEach(video => {
+            const videoId = getVideoId(video.filename);
+            this.usedVideoIds['30s'].add(videoId);
+            console.log(`Marked ${videoId} as used (30s)`);
+        });
+        
+        selected60s.forEach(video => {
+            const videoId = getVideoId(video.filename);
+            this.usedVideoIds['60s'].add(videoId);
+            console.log(`Marked ${videoId} as used (60s)`);
+        });
+        
+        // Combine selected videos
+        const selectedFiles = [...selected30s, ...selected60s];
         
         // Shuffle the final selection to randomize order
         const shuffledSelection = this.shuffleArray(selectedFiles);
@@ -514,6 +596,12 @@ class UserStudy {
             currentComparisonSet: this.currentComparisonSet,
             currentVideoIndex: this.currentVideoIndex
         }));
+        
+        // Save used video IDs to prevent reusing videos on page refresh
+        localStorage.setItem('userStudyUsedVideoIds', JSON.stringify({
+            '30s': Array.from(this.usedVideoIds['30s']),
+            '60s': Array.from(this.usedVideoIds['60s'])
+        }));
     }
 
     loadResponses() {
@@ -527,6 +615,22 @@ class UserStudy {
             const progressData = JSON.parse(progress);
             this.currentComparisonSet = progressData.currentComparisonSet || 0;
             this.currentVideoIndex = progressData.currentVideoIndex || 0;
+        }
+        
+        // Restore used video IDs from localStorage to prevent reusing videos
+        const savedUsedIds = localStorage.getItem('userStudyUsedVideoIds');
+        if (savedUsedIds) {
+            try {
+                const usedIds = JSON.parse(savedUsedIds);
+                this.usedVideoIds['30s'] = new Set(usedIds['30s'] || []);
+                this.usedVideoIds['60s'] = new Set(usedIds['60s'] || []);
+                console.log('Restored used video IDs:', {
+                    '30s': Array.from(this.usedVideoIds['30s']),
+                    '60s': Array.from(this.usedVideoIds['60s'])
+                });
+            } catch (e) {
+                console.warn('Failed to restore used video IDs:', e);
+            }
         }
     }
 

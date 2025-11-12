@@ -310,14 +310,15 @@ def main():
         
         print(f"📄 분석 리포트 저장됨: {analysis_file}")
         
-        # 기존 분석 (비교용)
+        # 올바른 분석 (Order Sheet 기반)
         print("\n" + "="*50)
-        print("기존 방식 분석 (잘못된 결과):")
-        analyze_results_old_way(results)
-        
-        print("\n" + "="*50)
-        print("올바른 분석 (Order Sheet 기반):")
+        print("분석 결과 (Order Sheet 기반):")
         analyze_results_with_order_sheets(results, order_sheets)
+        
+        # 기존 분석은 주석 처리 (필요시 주석 해제하여 비교 가능)
+        # print("\n" + "="*50)
+        # print("기존 방식 분석 (비교용 - 잘못된 결과):")
+        # analyze_results_old_way(results)
         
     else:
         print("❌ 수집된 결과가 없습니다.")
