@@ -1,66 +1,30 @@
 {
-  "study_title": "Video Generation Model Comparison Study",
-  "instructions": "Please watch each comparison video and select which model (A or B) produces better quality video generation results.",
+  "study_title": "Long Video Generation Model Comparison Study",
+  "instructions": "Please watch each comparison video and select which model (A or B) produces better quality long video generation results.",
   "comparison_sets": [
     {
-      "name": "matrix_vs_cogvideox_5b", 
+      "name": "deepsink_vs_self_forcing",
       "display_name": "Comparison Set 1",
-      "video_folder": "user_study_comparisons/matrix_vs_cogvideox_5b",
-      "order_file": "user_study_comparisons/matrix_vs_cogvideox_5b/order_sheet.txt"
+      "video_folder": "user_study_comparisons/deepsink_vs_self_forcing",
+      "order_file": "user_study_comparisons/deepsink_vs_self_forcing/order_sheet.txt"
     },
     {
-      "name": "matrix_vs_opensora",
-      "display_name": "Comparison Set 2", 
-      "video_folder": "user_study_comparisons/matrix_vs_opensora",
-      "order_file": "user_study_comparisons/matrix_vs_opensora/order_sheet.txt"
+      "name": "deepsink_vs_long_live",
+      "display_name": "Comparison Set 2",
+      "video_folder": "user_study_comparisons/deepsink_vs_long_live",
+      "order_file": "user_study_comparisons/deepsink_vs_long_live/order_sheet.txt"
     },
     {
-      "name": "matrix_vs_tavid",
+      "name": "deepsink_vs_causvid",
       "display_name": "Comparison Set 3",
-      "video_folder": "user_study_comparisons/matrix_vs_tavid", 
-      "order_file": "user_study_comparisons/matrix_vs_tavid/order_sheet.txt"
+      "video_folder": "user_study_comparisons/deepsink_vs_causvid",
+      "order_file": "user_study_comparisons/deepsink_vs_causvid/order_sheet.txt"
     },
     {
-      "name": "matrix_vs_wan14b",
+      "name": "deepsink_vs_rolling_forcing",
       "display_name": "Comparison Set 4",
-      "video_folder": "user_study_comparisons/matrix_vs_wan14b",
-      "order_file": "user_study_comparisons/matrix_vs_wan14b/order_sheet.txt"
-    },
-    {
-      "name": "cogvideox_5b_vs_opensora",
-      "display_name": "Comparison Set 5",
-      "video_folder": "user_study_comparisons/cogvideox_5b_vs_opensora",
-      "order_file": "user_study_comparisons/cogvideox_5b_vs_opensora/order_sheet.txt"
-    },
-    {
-      "name": "cogvideox_5b_vs_tavid",
-      "display_name": "Comparison Set 6",
-      "video_folder": "user_study_comparisons/cogvideox_5b_vs_tavid",
-      "order_file": "user_study_comparisons/cogvideox_5b_vs_tavid/order_sheet.txt"
-    },
-    {
-      "name": "cogvideox_5b_vs_wan14b",
-      "display_name": "Comparison Set 7",
-      "video_folder": "user_study_comparisons/cogvideox_5b_vs_wan14b",
-      "order_file": "user_study_comparisons/cogvideox_5b_vs_wan14b/order_sheet.txt"
-    },
-    {
-      "name": "opensora_vs_tavid",
-      "display_name": "Comparison Set 8", 
-      "video_folder": "user_study_comparisons/opensora_vs_tavid",
-      "order_file": "user_study_comparisons/opensora_vs_tavid/order_sheet.txt"
-    },
-    {
-      "name": "opensora_vs_wan14b",
-      "display_name": "Comparison Set 9",
-      "video_folder": "user_study_comparisons/opensora_vs_wan14b",
-      "order_file": "user_study_comparisons/opensora_vs_wan14b/order_sheet.txt"
-    },
-    {
-      "name": "tavid_vs_wan14b",
-      "display_name": "Comparison Set 10",
-      "video_folder": "user_study_comparisons/tavid_vs_wan14b",
-      "order_file": "user_study_comparisons/tavid_vs_wan14b/order_sheet.txt"
+      "video_folder": "user_study_comparisons/deepsink_vs_rolling_forcing",
+      "order_file": "user_study_comparisons/deepsink_vs_rolling_forcing/order_sheet.txt"
     }
   ],
   "rating_scale": {

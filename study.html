@@ -14,9 +14,7 @@
                     <div class="progress-fill" id="progressBar"></div>
                 </div>
                 <div class="progress-text">
-                    Comparison Set <span id="currentComparisonSet">1</span> of <span id="totalComparisonSets">10</span> |
-                    Video <span id="videoNumber">1</span> of <span id="totalVideosInSet">2</span>
-                    (<span id="currentProgress">1</span>/<span id="totalProgress">20</span> total)
+                    Problem <span id="currentProgress">1</span> of <span id="totalProgress">16</span>
                 </div>
             </div>
         </header>
@@ -32,7 +30,6 @@
             <div id="studyInterface" class="study-interface" style="display: none;">
                 <div class="video-section">
                     <div class="video-info">
-                        <h2><span id="comparisonSetName">Comparison Set 1</span></h2>
                         <div class="prompt-section">
                             <h4>Text Prompt:</h4>
                             <p id="currentPromptText" class="prompt-text">Loading prompt...</p>
@@ -40,19 +37,18 @@
                     </div>
 
                     <div class="video-labels">
-                        <span class="video-label">First Frame</span>
                         <span class="video-label">Model A</span>
                         <span class="video-label">Model B</span>
                     </div>
                     <div class="video-container">
-                        <video id="comparisonVideo" controls autoplay muted loop preload="metadata" width="100%">
+                        <video id="comparisonVideo" controls muted preload="auto" width="100%">
                             Your browser does not support the video tag.
                         </video>
                     </div>
 
                     <div class="video-controls-info">
                         <p><strong>Please watch the video completely before making your choice below.</strong></p>
-                        <p>The video shows: First Frame | Model A | Model B</p>
+                        <p>The video shows: Model A | Model B (side by side)</p>
                     </div>
                 </div>
 
@@ -62,74 +58,53 @@
                             <p class="questions-instruction">
                                 <strong>Please answer all questions below after watching the video completely.</strong>
                                 Watch the video multiple times if needed to evaluate different aspects.
-                                <br><br>
-                                <strong>비디오를 완전히 시청한 후 아래 모든 질문에 답해주세요.</strong>
-                                다양한 측면을 평가하기 위해 필요시 비디오를 여러 번 시청하세요.
+
                             </p>
 
                             <div class="question">
-                                <h4>1. <strong>[Interaction Accuracy]</strong> Which video more accurately represents the interaction specified in the text prompt (who is interacting with whom and what they are doing)?</h4>
-                                <p class="question-korean"><strong>[상호작용 정확성]</strong> 텍스트 프롬프트에서 명시된 상호작용(누가 누구와 무엇을 하는지)을 더 정확하게 표현한 비디오는?</p>
+                                <h4>1. <strong>[Color Consistency]</strong> Which video maintains more consistent color and exposure throughout, without sudden shifts in brightness, saturation, or color tone?</h4>
                                 <div class="question-options">
                                     <label>
-                                        <input type="radio" name="interaction_accuracy" value="A">
+                                        <input type="radio" name="color_consistency" value="A">
                                         Model A
                                     </label>
                                     <label>
-                                        <input type="radio" name="interaction_accuracy" value="B">
+                                        <input type="radio" name="color_consistency" value="B">
                                         Model B
                                     </label>
                                 </div>
                             </div>
 
                             <div class="question">
-                                <h4>2. <strong>[Semantic Grounding]</strong> Which video more accurately includes the objects indicated in the image prompt as instructed by the text prompt in the interaction (i.e., better grounding)?</h4>
-                                <p class="question-korean"><strong>[객체 반영 정확도]</strong> 텍스트 프롬프트의 지시에 따라 이미지 프롬프트에 표시된 객체들을 상호작용에 더 정확하게 포함한 비디오는? (즉, 더 나은 기반화)</p>
+                                <h4>2. <strong>[Dynamic Motion]</strong> Which video exhibits more dynamic and varied motion, including both subject movement and camera movement?</h4>
                                 <div class="question-options">
                                     <label>
-                                        <input type="radio" name="entity_accuracy" value="A">
+                                        <input type="radio" name="dynamic_motion" value="A">
                                         Model A
                                     </label>
                                     <label>
-                                        <input type="radio" name="entity_accuracy" value="B">
+                                        <input type="radio" name="dynamic_motion" value="B">
                                         Model B
                                     </label>
                                 </div>
                             </div>
 
                             <div class="question">
-                                <h4>3. <strong>[Semantic Propagation]</strong> Which video is more temporally consistent, without sudden appearances/disappearances (hallucination)?</h4>
-                                <p class="question-korean"><strong>[의미적 전파]</strong> 갑작스러운 출현/소멸(환각) 없이 시간적으로 더 일관성 있는 비디오는?</p>
+                                <h4>3. <strong>[Subject Consistency]</strong> Which video maintains better visual consistency of the main subject throughout its duration? (Consider comparing the beginning and end of each video)</h4>
                                 <div class="question-options">
                                     <label>
-                                        <input type="radio" name="temporal_consistency" value="A">
+                                        <input type="radio" name="subject_consistency" value="A">
                                         Model A
                                     </label>
                                     <label>
-                                        <input type="radio" name="temporal_consistency" value="B">
+                                        <input type="radio" name="subject_consistency" value="B">
                                         Model B
                                     </label>
                                 </div>
                             </div>
 
                             <div class="question">
-                                <h4>4. <strong>[Semantic Alignment]</strong> Overall, which video shows the interaction more faithfully and naturally according to the text prompt?</h4>
-                                <p class="question-korean"><strong>[의미적 정렬]</strong> 전반적으로 텍스트 프롬프트에 따라 상호작용을 더 충실하고 자연스럽게 보여주는 비디오는?</p>
-                                <div class="question-options">
-                                    <label>
-                                        <input type="radio" name="prompt_faithfulness" value="A">
-                                        Model A
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="prompt_faithfulness" value="B">
-                                        Model B
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="question">
-                                <h4>5. <strong>[Overall Quality]</strong> Overall, which video looks more realistic, natural, and of higher overall quality?</h4>
-                                <p class="question-korean"><strong>[전반적 품질]</strong> 전반적으로 더 현실적이고 자연스러우며 전체적인 품질이 높은 비디오는?</p>
+                                <h4>4. <strong>[Overall Quality]</strong> Overall, which video appears more realistic, natural, and of higher overall quality?</h4>
                                 <div class="question-options">
                                     <label>
                                         <input type="radio" name="overall_quality" value="A">

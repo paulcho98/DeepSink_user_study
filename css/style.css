@@ -357,6 +357,29 @@ body {
     position: relative;
 }
 
+.video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    outline: none; /* Remove focus outline but keep focus functionality */
+}
+
+.video-container video:focus {
+    outline: 2px solid rgba(33, 150, 243, 0.5);
+    outline-offset: 2px;
+}
+
+.video-container video::-webkit-media-controls {
+    display: flex !important;
+}
+
+.video-container video::-webkit-media-controls-timeline {
+    display: flex !important;
+}
+
 /* Video error state styles */
 .video-error {
     border: 3px solid var(--error) !important;

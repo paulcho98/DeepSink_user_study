@@ -28,16 +28,10 @@ def load_order_sheets():
     
     # 실제 존재하는 comparison 폴더들
     comparison_folders = [
-        "matrix_vs_cogvideox_5b",
-        "matrix_vs_opensora", 
-        "matrix_vs_tavid",
-        "matrix_vs_wan14b",
-        "cogvideox_5b_vs_opensora",
-        "cogvideox_5b_vs_tavid",
-        "cogvideox_5b_vs_wan14b",
-        "opensora_vs_tavid",
-        "opensora_vs_wan14b", 
-        "tavid_vs_wan14b"
+        "deepsink_vs_self_forcing",
+        "deepsink_vs_long_live",
+        "deepsink_vs_causvid",
+        "deepsink_vs_rolling_forcing"
     ]
     
     for folder in comparison_folders:
@@ -127,7 +121,7 @@ def decode_choice(comparison_name, video_filename, choice, order_sheets):
     else:
         return None, None
 
-def collect_issues(token, owner='deep-overflow', repo='InterGenEval_user_study'):
+def collect_issues(token, owner='paulcho98', repo='DeepSink_user_study'):
     """GitHub Issues에서 사용자 연구 결과 수집"""
     headers = {
         'Authorization': f'token {token}',
@@ -192,18 +186,16 @@ def analyze_results_with_order_sheets(results, order_sheets):
         return
     
     question_names = [
-        'interaction_accuracy',
-        'entity_accuracy', 
-        'temporal_consistency',
-        'prompt_faithfulness',
+        'color_consistency',
+        'dynamic_motion', 
+        'subject_consistency',
         'overall_quality'
     ]
     
     question_labels = {
-        'interaction_accuracy': '상호작용 정확성',
-        'entity_accuracy': '대상 정확성', 
-        'temporal_consistency': '시간적 일관성',
-        'prompt_faithfulness': '프롬프트 충실도',
+        'color_consistency': '색상 일관성',
+        'dynamic_motion': '동적 움직임', 
+        'subject_consistency': '주체 일관성',
         'overall_quality': '전반적 품질'
     }
     
@@ -334,7 +326,7 @@ def analyze_results_old_way(results):
     """기존 잘못된 방식으로 분석 (비교용)"""
     print("📊 기존 분석 결과 (잘못됨):")
     
-    question_names = ['interaction_accuracy', 'entity_accuracy', 'temporal_consistency', 'prompt_faithfulness', 'overall_quality']
+    question_names = ['color_consistency', 'dynamic_motion', 'subject_consistency', 'overall_quality']
     
     for question_name in question_names:
         print(f"\n🏆 {question_name}:")

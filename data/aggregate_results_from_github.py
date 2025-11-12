@@ -21,8 +21,8 @@ class GitHubIssuesAggregator(UserStudyAggregator):
     def __init__(self, github_token, base_dir=None):
         super().__init__(base_dir)
         self.github_token = github_token
-        self.repo_owner = "deep-overflow"
-        self.repo_name = "InterGenEval_user_study"
+        self.repo_owner = "paulcho98"
+        self.repo_name = "DeepSink_user_study"
 
     def fetch_github_issues(self):
         """Fetch all open issues from GitHub repository"""
@@ -33,7 +33,8 @@ class GitHubIssuesAggregator(UserStudyAggregator):
         }
 
         params = {
-            'state': 'open',
+            'labels': 'user-study-result',
+            'state': 'all',  # Get both open and closed issues
             'per_page': 100  # GitHub max per page
         }
 
@@ -70,70 +71,93 @@ class GitHubIssuesAggregator(UserStudyAggregator):
         return all_issues
 
     def extract_results_from_issue(self, issue):
-        """Extract results code from GitHub issue body"""
+        """Extract JSON results from GitHub issue body"""
         body = issue.get('body', '')
 
         print(f"  Debug: Issue body preview: {body[:200]}...")
 
-        # Try multiple patterns for extracting results
-        # Pattern 1: Markdown code blocks with ```
-        code_block_pattern = r'```\s*\n(.*?)\n```'
-        matches = re.findall(code_block_pattern, body, re.DOTALL)
+        # Try to extract JSON from markdown code block
+        # Pattern: ```json ... ```
+        json_pattern = r'```json\s*\n(.*?)\n```'
+        matches = re.findall(json_pattern, body, re.DOTALL)
 
         if matches:
-            print(f"  Found {len(matches)} code blocks")
-            results_code = matches[0].strip()
-        else:
-            # Pattern 2: Look for lines that match our format directly
-            lines = body.split('\n')
-            result_lines = []
-            for line in lines:
-                line = line.strip()
-                if re.match(r'^\d+-\d+-\d+-\d{4}$', line):
-                    result_lines.append(line)
-
-            if result_lines:
-                print(f"  Found {len(result_lines)} result lines without code blocks")
-                results_code = '\n'.join(result_lines)
-            else:
-                print(f"  No results code found in issue #{issue['number']}: {issue['title']}")
+            json_str = matches[0].strip()
+            try:
+                data = json.loads(json_str)
+                print(f"  ✅ Successfully extracted JSON from issue #{issue['number']}")
+                return data
+            except json.JSONDecodeError as e:
+                print(f"  ⚠️ Failed to parse JSON: {e}")
                 return None
-
-        # Handle both actual newlines and \n strings
-        if '\\n' in results_code:
-            # Replace literal \n with actual newlines
-            results_code = results_code.replace('\\n', '\n')
-
-        # Validate format (should be lines like "1-1-8-1122")
-        lines = [line.strip() for line in results_code.split('\n') if line.strip()]
-        valid_lines = []
-
-        for line in lines:
-            # Check if line matches pattern: method-dataset-videoIndex-answers
-            if re.match(r'^\d+-\d+-\d+-\d{4}$', line):
-                valid_lines.append(line)
-            else:
-                print(f"  Invalid result format: {line}")
-
-        if not valid_lines:
-            print(f"  No valid results found in issue #{issue['number']}")
+        else:
+            # Try to find JSON block without json marker
+            code_block_pattern = r'```\s*\n(.*?)\n```'
+            matches = re.findall(code_block_pattern, body, re.DOTALL)
+            
+            if matches:
+                json_str = matches[0].strip()
+                # Check if it looks like JSON
+                if json_str.strip().startswith('{'):
+                    try:
+                        data = json.loads(json_str)
+                        print(f"  ✅ Successfully extracted JSON (without json marker) from issue #{issue['number']}")
+                        return data
+                    except json.JSONDecodeError:
+                        pass
+            
+            print(f"  ⚠️ No JSON results found in issue #{issue['number']}: {issue['title']}")
             return None
 
-        print(f"  Extracted {len(valid_lines)} valid result lines")
-        return '\n'.join(valid_lines)
-
-    def process_user_responses(self, responses_text):
-        """Process all responses from a user (GitHub version with proper newline handling)"""
+    def process_user_responses(self, result_data):
+        """Process results data from GitHub issue (JSON format)"""
+        if not result_data:
+            return []
+        
+        # Convert the JSON format to the format expected by aggregate_results
         responses = []
-        lines = responses_text.strip().split('\n')  # Use actual newlines, not escaped
-
-        for line in lines:
-            line = line.strip()
-            if line:
-                decoded = self.decode_result_code(line)
-                if decoded:
-                    responses.append(decoded)
-
+        participant_id = result_data.get('participantId', 'unknown')
+        result_responses = result_data.get('responses', {})
+        
+        for comparison_name, videos in result_responses.items():
+            for video_filename, response_data in videos.items():
+                # Handle new format with multiple questions per video
+                if isinstance(response_data, dict) and 'answers' in response_data:
+                    answers = response_data['answers']
+                    # Process each question separately
+                    for question_name, choice in answers.items():
+                        if choice in ['A', 'B']:
+                            chosen_method, other_method, status = self.decode_response(
+                                comparison_name, video_filename, choice
+                            )
+                            if status == 'success':
+                                responses.append({
+                                    'participant_id': participant_id,
+                                    'comparison_name': comparison_name,
+                                    'video_filename': video_filename,
+                                    'question_name': question_name,
+                                    'choice': choice,
+                                    'chosen_method': chosen_method,
+                                    'other_method': other_method,
+                                    'decode_status': status
+                                })
+                # Handle legacy format (single choice)
+                elif isinstance(response_data, str) and response_data in ['A', 'B']:
+                    chosen_method, other_method, status = self.decode_response(
+                        comparison_name, video_filename, response_data
+                    )
+                    if status == 'success':
+                        responses.append({
+                            'participant_id': participant_id,
+                            'comparison_name': comparison_name,
+                            'video_filename': video_filename,
+                            'question_name': 'overall_quality',  # Default for legacy
+                            'choice': response_data,
+                            'chosen_method': chosen_method,
+                            'other_method': other_method,
+                            'decode_status': status
+                        })
+        
         return responses
 
     def process_github_issues(self):
@@ -150,12 +174,12 @@ class GitHubIssuesAggregator(UserStudyAggregator):
         for i, issue in enumerate(issues, 1):
             print(f"Processing issue {i}/{len(issues)}: #{issue['number']} - {issue['title']}")
 
-            results_code = self.extract_results_from_issue(issue)
-            if results_code:
-                responses = self.process_user_responses(results_code)
+            result_data = self.extract_results_from_issue(issue)
+            if result_data:
+                responses = self.process_user_responses(result_data)
                 if responses:
-                    all_responses.append(responses)
-                    print(f"  ✅ Extracted {len(responses)} comparisons")
+                    all_responses.extend(responses)
+                    print(f"  ✅ Extracted {len(responses)} responses")
                 else:
                     print(f"  ❌ Failed to process results")
             else:
@@ -177,7 +201,7 @@ def main():
     print("=" * 60)
     print("GITHUB ISSUES RESULTS AGGREGATION")
     print("=" * 60)
-    print(f"Repository: j0seo/research_survey_result_collect")
+    print(f"Repository: paulcho98/DeepSink_user_study")
     print(f"Output directory: {args.output_dir}")
     print()
 
@@ -192,25 +216,29 @@ def main():
         return
 
     # Aggregate and analyze
-    print(f"\nAggregating responses from {len(all_responses)} users...")
-    aggregated = aggregator.aggregate_multiple_users(all_responses)
-    stats = aggregator.calculate_statistics(aggregated)
+    print(f"\nAggregating {len(all_responses)} responses...")
+    aggregated = aggregator.aggregate_results(all_responses)
 
     # Generate report
     report_file = os.path.join(args.output_dir, 'github_study_report.txt')
-    report = aggregator.generate_report(stats, report_file)
+    report = aggregator.generate_report(aggregated, report_file)
     print("\n" + "="*50)
     print("ANALYSIS COMPLETE")
     print("="*50)
     print(report)
 
-    # Always export CSV for easy analysis
+    # Export CSV for easy analysis
     csv_file = os.path.join(args.output_dir, 'github_study_results.csv')
-    aggregator.export_to_csv(stats, csv_file)
+    if aggregated and 'detailed_results' in aggregated:
+        import pandas as pd
+        df = pd.DataFrame(aggregated['detailed_results'])
+        df.to_csv(csv_file, index=False)
+        print(f"  📈 CSV: {csv_file}")
 
     print(f"\nFiles generated:")
     print(f"  📊 Report: {report_file}")
-    print(f"  📈 CSV: {csv_file}")
+    if aggregated and 'detailed_results' in aggregated:
+        print(f"  📈 CSV: {csv_file}")
 
 if __name__ == "__main__":
     main()

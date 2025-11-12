@@ -95,17 +95,28 @@ class UserStudy {
         // Get existing videos for this comparison set
         const existingVideos = this.getExistingVideos(comparisonSet.video_folder);
         
-        // Randomly select 2 videos from the available videos
-        const shuffledFiles = this.shuffleArray(existingVideos);
-        const selectedFiles = shuffledFiles.slice(0, 2);
+        // Separate videos by duration (30s vs 60s)
+        const videos30s = existingVideos.filter(v => v.filename.startsWith('30s_'));
+        const videos60s = existingVideos.filter(v => v.filename.startsWith('60s_'));
         
-        this.currentVideos = selectedFiles.map(video => ({
+        // Randomly select 4 videos: 2 from 30s and 2 from 60s
+        const shuffled30s = this.shuffleArray([...videos30s]);
+        const shuffled60s = this.shuffleArray([...videos60s]);
+        
+        // Select 2 from each duration
+        const selectedFiles = [
+            ...shuffled30s.slice(0, 2),
+            ...shuffled60s.slice(0, 2)
+        ];
+        
+        // Shuffle the final selection to randomize order
+        const shuffledSelection = this.shuffleArray(selectedFiles);
+        
+        this.currentVideos = shuffledSelection.map(video => ({
             filename: video.filename,
             path: `${comparisonSet.video_folder}/${video.filename}`,
             basename: video.basename
         }));
-        
-        // No need to shuffle again since we already randomly selected
     }
 
     shuffleArray(array) {
@@ -134,16 +145,6 @@ class UserStudy {
 
         const video = this.currentVideos[this.currentVideoIndex];
         const comparisonSet = this.studyConfig.comparison_sets[this.currentComparisonSet];
-
-        // Update UI elements with null checks
-        const comparisonSetNameEl = document.getElementById('comparisonSetName');
-        if (comparisonSetNameEl) comparisonSetNameEl.textContent = comparisonSet.display_name;
-        
-        const videoNumberEl = document.getElementById('videoNumber');
-        if (videoNumberEl) videoNumberEl.textContent = this.currentVideoIndex + 1;
-        
-        const totalVideosInSetEl = document.getElementById('totalVideosInSet');
-        if (totalVideosInSetEl) totalVideosInSetEl.textContent = this.currentVideos.length;
         
         // Display prompt text
         const currentPromptTextEl = document.getElementById('currentPromptText');
@@ -166,14 +167,25 @@ class UserStudy {
             // Clear any previous error states
             videoElement.classList.remove('video-error');
             
+            // Configure video for seeking BEFORE setting source
+            videoElement.controls = true; // Enable controls (including timeline)
+            videoElement.muted = true; // Muted for autoplay compatibility
+            videoElement.preload = 'auto'; // Preload video data for seeking
+            videoElement.autoplay = false; // Don't autoplay - let user control playback
+            
+            // Make video focusable for keyboard controls
+            videoElement.setAttribute('tabindex', '0');
+            
             // Set video source
             videoElement.src = video.path;
             
-            // Add autoplay and preload attributes
-            videoElement.autoplay = true;
-            videoElement.muted = true; // Required for autoplay in most browsers
-            videoElement.loop = true; // Loop the video
-            videoElement.preload = 'metadata';
+            // Force video to load
+            videoElement.load();
+            
+            // Focus video element so keyboard controls work
+            setTimeout(() => {
+                videoElement.focus();
+            }, 100);
             
             // Add better error handling
             videoElement.onerror = (e) => {
@@ -211,13 +223,53 @@ class UserStudy {
                 });
             };
             
-            // Try to load the video
-            try {
-                videoElement.load();
-            } catch (error) {
-                console.error('Video.load() 실패:', error);
-                this.showError(`비디오 파일을 로드하는 동안 오류가 발생했습니다: ${video.path}`);
-            }
+            // Ensure video is seekable once enough data is loaded
+            videoElement.oncanplaythrough = () => {
+                console.log('비디오 전체 재생 가능 (seeking enabled):', video.path);
+                videoElement.controls = true;
+                // Ensure seeking is enabled
+                if (videoElement.seekable.length > 0) {
+                    console.log('Video is seekable, range:', videoElement.seekable.start(0), 'to', videoElement.seekable.end(0));
+                }
+            };
+            
+            // Enable seeking as soon as we have some data
+            videoElement.onloadeddata = () => {
+                console.log('Video data loaded, enabling seeking');
+                videoElement.controls = true;
+            };
+            
+            videoElement.onprogress = () => {
+                if (videoElement.buffered.length > 0 && videoElement.seekable.length > 0) {
+                    // Video has buffered and seekable data
+                    videoElement.controls = true;
+                    console.log('Video buffered, seeking should work');
+                }
+            };
+            
+            // Ensure video controls are always enabled and interactive
+            videoElement.onloadedmetadata = () => {
+                videoElement.controls = true;
+                // Ensure the video can be controlled
+                if (videoElement.seekable.length > 0) {
+                    console.log('Video metadata loaded, seeking range:', 
+                        videoElement.seekable.start(0), 'to', videoElement.seekable.end(0));
+                }
+            };
+            
+            // Add explicit keyboard event handlers for seeking
+            videoElement.addEventListener('keydown', (e) => {
+                // Don't prevent default - let browser handle video controls
+                // But ensure video is focused
+                if (e.target !== videoElement) {
+                    videoElement.focus();
+                }
+            });
+            
+            // Ensure clicking on video focuses it
+            videoElement.addEventListener('click', () => {
+                videoElement.focus();
+            });
         }
         
         // Reset form
@@ -270,11 +322,6 @@ class UserStudy {
     }
 
     setupUI() {
-        // Update total comparison sets
-        const totalComparisonSetsEl = document.getElementById('totalComparisonSets');
-        if (totalComparisonSetsEl) {
-            totalComparisonSetsEl.textContent = this.studyConfig.comparison_sets.length;
-        }
 
         // Setup choice form
         const choiceForm = document.getElementById('choiceForm');
@@ -320,10 +367,9 @@ class UserStudy {
 
     checkAllQuestionsAnswered() {
         const questionNames = [
-            'interaction_accuracy',
-            'entity_accuracy', 
-            'temporal_consistency',
-            'prompt_faithfulness',
+            'color_consistency',
+            'dynamic_motion', 
+            'subject_consistency',
             'overall_quality'
         ];
         
@@ -389,10 +435,9 @@ class UserStudy {
         
         // Collect all answers
         const questionNames = [
-            'interaction_accuracy',
-            'entity_accuracy', 
-            'temporal_consistency',
-            'prompt_faithfulness',
+            'color_consistency',
+            'dynamic_motion', 
+            'subject_consistency',
             'overall_quality'
         ];
         
@@ -443,14 +488,14 @@ class UserStudy {
         } else if (direction < 0 && this.currentComparisonSet > 0) {
             // Move to previous comparison set
             this.currentComparisonSet--;
-            this.currentVideoIndex = 1; // Last video in previous set (now 2 videos per set)
+            this.currentVideoIndex = 3; // Last video in previous set (now 4 videos per set)
             await this.loadComparisonSet();
         }
     }
 
     updateProgress() {
-        const totalVideos = this.studyConfig.comparison_sets.length * 2; // 2 videos per set
-        const completedVideos = this.currentComparisonSet * 2 + this.currentVideoIndex;
+        const totalVideos = this.studyConfig.comparison_sets.length * 4; // 4 videos per set = 16 total
+        const completedVideos = this.currentComparisonSet * 4 + this.currentVideoIndex;
         const progressPercent = (completedVideos / totalVideos) * 100;
 
         const currentProgressEl = document.getElementById('currentProgress');
@@ -461,10 +506,6 @@ class UserStudy {
         
         const progressBar = document.getElementById('progressBar');
         if (progressBar) progressBar.style.width = `${progressPercent}%`;
-        
-        // Update comparison set progress
-        const currentComparisonSetEl = document.getElementById('currentComparisonSet');
-        if (currentComparisonSetEl) currentComparisonSetEl.textContent = this.currentComparisonSet + 1;
     }
 
     saveResponses() {
@@ -519,10 +560,17 @@ class UserStudy {
 
     async submitResultsToGitHub(results) {
         // GitHub configuration
+        // For Vercel: Set GITHUB_TOKEN in Vercel Environment Variables
+        // Note: Exposing tokens in client-side code is a security risk.
+        // Consider using a serverless function for production.
         const GITHUB_CONFIG = {
-            owner: 'deep-overflow',
-            repo: 'InterGenEval_user_study',
-            token: 'YOUR_GITHUB_TOKEN_HERE'
+            owner: 'paulcho98',
+            repo: 'DeepSink_user_study',
+            // Try to get token from environment variable (Vercel exposes these)
+            // Fallback to placeholder if not set
+            token: (typeof process !== 'undefined' && process.env && process.env.GITHUB_TOKEN) 
+                || (typeof window !== 'undefined' && window.GITHUB_TOKEN)
+                || 'YOUR_GITHUB_TOKEN_HERE' // TODO: Set your GitHub token via Vercel env vars
         };
 
         const issueData = {
@@ -670,145 +718,93 @@ ${JSON.stringify(results, null, 2)}
         
         // Only include files that actually exist in each folder
         const actualFiles = {
-            'matrix_vs_cogvideox_5b': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
+            'deepsink_vs_self_forcing': [
+                '30s_109_comparison.mp4',
+                '30s_24_comparison.mp4',
+                '30s_2_comparison.mp4',
+                '30s_32_comparison.mp4',
+                '30s_42_comparison.mp4',
+                '30s_43_comparison.mp4',
+                '30s_46_comparison.mp4',
+                '30s_47_comparison.mp4',
+                '30s_4_comparison.mp4',
+                '30s_69_comparison.mp4',
+                '30s_74_comparison.mp4',
+                '30s_7_comparison.mp4',
+                '30s_88_comparison.mp4',
+                '60s_28_comparison.mp4',
+                '60s_2_comparison.mp4',
+                '60s_43_comparison.mp4',
+                '60s_46_comparison.mp4',
+                '60s_47_comparison.mp4',
+                '60s_53_comparison.mp4',
+                '60s_70_comparison.mp4'
             ],
-            'matrix_vs_opensora': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
+            'deepsink_vs_long_live': [
+                '30s_109_comparison.mp4',
+                '30s_24_comparison.mp4',
+                '30s_2_comparison.mp4',
+                '30s_32_comparison.mp4',
+                '30s_42_comparison.mp4',
+                '30s_43_comparison.mp4',
+                '30s_46_comparison.mp4',
+                '30s_47_comparison.mp4',
+                '30s_4_comparison.mp4',
+                '30s_69_comparison.mp4',
+                '30s_74_comparison.mp4',
+                '30s_7_comparison.mp4',
+                '30s_88_comparison.mp4',
+                '60s_28_comparison.mp4',
+                '60s_2_comparison.mp4',
+                '60s_43_comparison.mp4',
+                '60s_46_comparison.mp4',
+                '60s_47_comparison.mp4',
+                '60s_53_comparison.mp4',
+                '60s_70_comparison.mp4'
             ],
-            'matrix_vs_tavid': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
+            'deepsink_vs_causvid': [
+                '30s_109_comparison.mp4',
+                '30s_24_comparison.mp4',
+                '30s_2_comparison.mp4',
+                '30s_32_comparison.mp4',
+                '30s_42_comparison.mp4',
+                '30s_43_comparison.mp4',
+                '30s_46_comparison.mp4',
+                '30s_47_comparison.mp4',
+                '30s_4_comparison.mp4',
+                '30s_69_comparison.mp4',
+                '30s_74_comparison.mp4',
+                '30s_7_comparison.mp4',
+                '30s_88_comparison.mp4',
+                '60s_28_comparison.mp4',
+                '60s_2_comparison.mp4',
+                '60s_43_comparison.mp4',
+                '60s_46_comparison.mp4',
+                '60s_47_comparison.mp4',
+                '60s_53_comparison.mp4',
+                '60s_70_comparison.mp4'
             ],
-            'matrix_vs_wan14b': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
-            ],
-            'cogvideox_5b_vs_opensora': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
-            ],
-            'cogvideox_5b_vs_tavid': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
-            ],
-            'cogvideox_5b_vs_wan14b': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
-            ],
-            'opensora_vs_tavid': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
-            ],
-            'opensora_vs_wan14b': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
-            ],
-            'tavid_vs_wan14b': [
-                'easy_v2_017_comparison.mp4',
-                'generated_027_comparison.mp4',
-                'generated_032_comparison.mp4',
-                'generated_037_comparison.mp4',
-                'generated_038_comparison.mp4',
-                'generated_054_comparison.mp4',
-                'sampled_025_comparison.mp4',
-                'sampled_027_comparison.mp4',
-                'sampled_036_comparison.mp4',
-                'sampled_038_comparison.mp4',
-                'sampled_042_comparison.mp4',
-                'sampled_049_comparison.mp4'
+            'deepsink_vs_rolling_forcing': [
+                '30s_109_comparison.mp4',
+                '30s_24_comparison.mp4',
+                '30s_2_comparison.mp4',
+                '30s_32_comparison.mp4',
+                '30s_42_comparison.mp4',
+                '30s_43_comparison.mp4',
+                '30s_46_comparison.mp4',
+                '30s_47_comparison.mp4',
+                '30s_4_comparison.mp4',
+                '30s_69_comparison.mp4',
+                '30s_74_comparison.mp4',
+                '30s_7_comparison.mp4',
+                '30s_88_comparison.mp4',
+                '60s_28_comparison.mp4',
+                '60s_2_comparison.mp4',
+                '60s_43_comparison.mp4',
+                '60s_46_comparison.mp4',
+                '60s_47_comparison.mp4',
+                '60s_53_comparison.mp4',
+                '60s_70_comparison.mp4'
             ]
         };
         
